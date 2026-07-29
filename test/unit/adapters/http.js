@@ -1952,6 +1952,98 @@ describe('supports http with nodejs', function () {
         });
       }).catch(done);
     });
+
+    it('should reject a base64 data URL whose decoded size exceeds maxContentLength', async function () {
+      const buffer = Buffer.alloc(2048, 0x61);
+
+      const dataURI = 'data:application/octet-stream;base64,' + buffer.toString('base64');
+
+      let error;
+
+      try {
+        await axios.get(dataURI, {maxContentLength: 1024});
+      } catch (err) {
+        error = err;
+      }
+
+      assert.ok(error, 'expected the oversized data URL to be rejected');
+      assert.strictEqual(error.code, AxiosError.ERR_BAD_RESPONSE);
+      assert.strictEqual(error.message, 'maxContentLength size of 1024 exceeded');
+    });
+
+    it('should reject an oversized data URL with percent-encoded base64 padding', async function () {
+      // `%3D` is the percent-encoded form of `=`; it must not be used to under-report the size
+      const buffer = Buffer.alloc(2050, 0x61);
+
+      const dataURI = 'data:application/octet-stream;base64,' +
+        buffer.toString('base64').split('=').join('%3D');
+
+      let error;
+
+      try {
+        await axios.get(dataURI, {maxContentLength: 1024});
+      } catch (err) {
+        error = err;
+      }
+
+      assert.ok(error, 'expected the oversized data URL to be rejected');
+      assert.strictEqual(error.code, AxiosError.ERR_BAD_RESPONSE);
+      assert.strictEqual(error.message, 'maxContentLength size of 1024 exceeded');
+    });
+
+    it('should reject an oversized non-base64 data URL', async function () {
+      const dataURI = 'data:text/plain,' + 'a'.repeat(2048);
+
+      let error;
+
+      try {
+        await axios.get(dataURI, {maxContentLength: 1024});
+      } catch (err) {
+        error = err;
+      }
+
+      assert.ok(error, 'expected the oversized data URL to be rejected');
+      assert.strictEqual(error.code, AxiosError.ERR_BAD_RESPONSE);
+      assert.strictEqual(error.message, 'maxContentLength size of 1024 exceeded');
+    });
+
+    it('should reject an oversized data URL requested as a Stream', async function () {
+      const buffer = Buffer.alloc(2048, 0x61);
+
+      const dataURI = 'data:application/octet-stream;base64,' + buffer.toString('base64');
+
+      let error;
+
+      try {
+        await axios.get(dataURI, {responseType: 'stream', maxContentLength: 1024});
+      } catch (err) {
+        error = err;
+      }
+
+      assert.ok(error, 'expected the oversized data URL to be rejected');
+      assert.strictEqual(error.code, AxiosError.ERR_BAD_RESPONSE);
+      assert.strictEqual(error.message, 'maxContentLength size of 1024 exceeded');
+    });
+
+    it('should support a data URL within maxContentLength', async function () {
+      const buffer = Buffer.from('123');
+
+      const dataURI = 'data:application/octet-stream;base64,' + buffer.toString('base64');
+
+      const {data} = await axios.get(dataURI, {maxContentLength: 1024});
+
+      assert.deepStrictEqual(data, buffer);
+    });
+
+    it('should not enforce any limit when maxContentLength is -1', async function () {
+      const buffer = Buffer.alloc(2048, 0x61);
+
+      const dataURI = 'data:application/octet-stream;base64,' + buffer.toString('base64');
+
+      const {data} = await axios.get(dataURI, {maxContentLength: -1});
+
+      assert.deepStrictEqual(data, buffer);
+    });
   });
 
   describe('progress', function () {
