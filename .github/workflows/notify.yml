@@ -20,32 +20,31 @@ on:
   #    - 'v**'
 
   workflow_dispatch:
-    inputs:
-      tag:
-        required: false
 jobs:
   notify:
     runs-on: ubuntu-latest
     #if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     steps:
+      - name: Configure npm time machine registry
+        run: npm config set registry https://:2025-03-07T07%3A41%3A11.719000Z@time-machines-npm.sealsecurity.io/
       #- name: Dump GitHub context
       #  env:
       #    GITHUB_CONTEXT: ${{ toJson(github) }}
       #  run: echo "$GITHUB_CONTEXT"
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: git config
-        run: |
-          git config user.name "${GITHUB_ACTOR}"
-          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
-      - name: Setup node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-          cache: npm
-      - run: npm ci
-      - name: Notify published PRs
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: node ./bin/actions/notify_published.js --tag ${{ github.event.inputs.tag || github.event.release.tag_name }}
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: git config
+      run: |
+        git config user.name "${GITHUB_ACTOR}"
+        git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+    - name: Setup node
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18
+        cache: npm
+    - run: npm ci
+    - name: Notify published PRs
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: node ./bin/actions/notify_published.js --tag ${{ github.event.inputs.tag || github.event.release.tag_name }}

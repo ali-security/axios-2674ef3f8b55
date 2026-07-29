@@ -1,24 +1,12 @@
 name: Release PR
 on:
   workflow_dispatch:
-    inputs:
-      type:
-        type: choice
-        description: Choose release type
-        options:
-          - auto
-          - patch
-          - minor
-          - major
-        default: auto
-      beta:
-        type: boolean
-        description: Prerelease
-        default: false
 jobs:
   releaseIt:
     runs-on: ubuntu-latest
     steps:
+      - name: Configure npm time machine registry
+        run: npm config set registry https://:2025-03-07T07%3A41%3A11.719000Z@time-machines-npm.sealsecurity.io/
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0

@@ -1,19 +1,7 @@
-name: 'CI'
+name: CI
 
 on:
-  push:
-    branches:
-      - '*'
-      - '*/*'
-      - '**'
-      - '!sponsors'
-  pull_request:
-    branches:
-      - '*'
-      - '*/*'
-      - '**'
-      - '!sponsors'
-
+  workflow_dispatch:
 permissions:
   contents: read
 
@@ -27,6 +15,8 @@ jobs:
       fail-fast: false
 
     steps:
+      - name: Configure npm time machine registry
+        run: npm config set registry https://:2025-03-07T07%3A41%3A11.719000Z@time-machines-npm.sealsecurity.io/
       - uses: actions/checkout@v4
         with:
           persist-credentials: true
@@ -42,6 +32,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Configure npm time machine registry
+        run: npm config set registry https://:2025-03-07T07%3A41%3A11.719000Z@time-machines-npm.sealsecurity.io/
       - uses: actions/checkout@v4
         with:
           persist-credentials: true

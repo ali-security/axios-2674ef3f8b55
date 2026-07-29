@@ -1,5 +1,6 @@
-name: 'Dependency Review'
-on: [pull_request]
+name: Dependency Review
+on:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -8,9 +9,11 @@ jobs:
   dependency-review:
     runs-on: ubuntu-latest
     steps:
-      - name: 'Checkout Repository'
+      - name: Configure npm time machine registry
+        run: npm config set registry https://:2025-03-07T07%3A41%3A11.719000Z@time-machines-npm.sealsecurity.io/
+      - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: 'Dependency Review'
+      - name: Dependency Review
         uses: actions/dependency-review-action@v4
